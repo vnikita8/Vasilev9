@@ -13,6 +13,7 @@ namespace Vasilev9
     public enum AccountType { текущий, сберегательный }
     public partial class Form1 : Form
     {
+        BankAccount[] accounts;
         public Form1()
         {
             InitializeComponent();
@@ -20,17 +21,71 @@ namespace Vasilev9
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            BankAccount account1 = new BankAccount();
-            BankAccount account2 = new BankAccount();
-            BankAccount account3 = new BankAccount();
+        }
 
-            Build build = new Build();
-            Build build2 = new Build();
-            Build build3 = new Build();
+        private void numericUpDown1_ValueChanged(object sender, EventArgs e)
+        {
 
-            richTextBox1.Text += $"{build.number}\n";
-            richTextBox1.Text += $"{build2.number}\n";
-            richTextBox1.Text += $"{build3.number}\n";
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            Random random = new Random();   
+            int count = (int)numericUpDown1.Value;
+            accounts = new BankAccount[count];
+            for (int acc = 0; acc<count; acc++)
+            {
+                accounts[acc] = new BankAccount();
+                accounts[acc].ChangeBalance(random.Next(100, 1000000));
+                accounts[acc].ChangeType((AccountType)random.Next(0, 2));
+            }
+            DrawBankAccount();
+        }
+
+        private void DrawBankAccount()
+        {
+            richTextBox1.Clear();
+            foreach (BankAccount account in accounts)
+            {
+                richTextBox1.Text += $"Аккаунт: {account.GetNumber()} - <<{account.GetType()}>>. Баланс: {account.GetBalance()} (руб.)\n\n";
+            }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            foreach( BankAccount account in accounts)
+            {
+                account.PutMoney((int)PutNum.Value);
+                account.TryTakeMoney((int)TakeNum.Value);
+                if (TypeCheckBox.Checked)
+                {
+                    if (account.GetType() == AccountType.текущий)
+                        account.ChangeType(AccountType.сберегательный);
+                    else
+                        account.ChangeType(AccountType.текущий);
+                }
+            }
+            DrawBankAccount();
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            richTextBox2.Clear();
+            Random random = new Random();
+            Build[] builds = new Build[(int)numericUpDown2.Value];
+            string per = new string(Convert.ToChar("-"), 30);
+            for (int build = 0;  build < builds.Length; build++)
+            {
+                builds[build] = new Build();
+                builds[build].setHeight(random.NextDouble()*100+2);
+                builds[build].setEntryCount(random.Next(1, 6));
+                builds[build].setLevelsCount(random.Next(Convert.ToInt32(builds[build].GetHeight() / 3.5), Convert.ToInt32(builds[build].GetHeight()/2)));
+                builds[build].setApartmentsCount(random.Next(builds[build].GetLevelsCount()*builds[build].GetEntryCount(), builds[build].GetLevelsCount() * builds[build].GetEntryCount()*5));
+
+                richTextBox2.Text += $"Здание <<{builds[build].GetNumber()}>>:\n\t Высота: {builds[build].GetHeight()} м., {builds[build].GetLevelsCount()} этажей, " +
+                    $"{builds[build].GetApartmentsCount()} квартир, {builds[build].GetEntryCount()} подьездов.\nВычисления: \n\tВысота этажа ({builds[build].CalcLevelsHeight()}), " +
+                    $"Квартир на этаж ({builds[build].CalcApartmentsInLevel()}), Квартир на подъезд ({builds[build].CalcApartmensInEntry()})\n{per}\n";
+            }
 
         }
     }
@@ -115,7 +170,7 @@ namespace Vasilev9
         private static void NumberGenerate() //Генерируем программно номер здания
         {
             Random rnd = new Random();
-            int staticNumber = rnd.Next(0, 19999);
+            int staticNumber = rnd.Next(0, 999);
             if (staticNumbers.Contains(staticNumber))
                 NumberGenerate();
             else
@@ -124,7 +179,7 @@ namespace Vasilev9
         public void setHeight(double height)
         {
             if (height > 0)
-                this.height = height;
+                this.height = Math.Round(height, 3);
         }
 
         public void setLevelsCount(int Count)
